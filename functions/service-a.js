@@ -9,7 +9,15 @@ const s3       = Promise.promisifyAll(new AWS.S3());
 const dynamodb = Promise.promisifyAll(new AWS.DynamoDB.DocumentClient());
 const lambda   = new AWS.Lambda();
 const region   = AWS.config.region;
+const epsagon = require('@epsagon/epsagon');
+
 const BUCKET_NAME = process.env.BUCKET_NAME;
+
+epsagon.init({
+    token: process.env.epsagon_token,
+    appName: 'serverless-observability',
+    metadataOnly: false,
+});
 
 let publishSNS = () => {
   let topicArn = `arn:aws:sns:${region}:${global.accountId}:serverless-observability-${process.env.stage}`;
@@ -95,7 +103,7 @@ let callServiceB = (n) => {
     });
 };
 
-module.exports.handler = async function (event, context, callback) {
+module.exports.handler = epsagon.lambdaWrapper(async function (event, context, callback) {
   console.log(JSON.stringify(event));
   console.log(JSON.stringify(context));
 
@@ -130,4 +138,4 @@ module.exports.handler = async function (event, context, callback) {
 
     throw new Error("boom");
   }
-};
+});

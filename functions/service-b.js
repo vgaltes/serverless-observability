@@ -1,6 +1,14 @@
 'use strict';
 
-module.exports.handler = (event, context, callback) => {
+const epsagon = require('@epsagon/epsagon');
+
+epsagon.init({
+    token: process.env.epsagon_token,
+    appName: 'serverless-observability',
+    metadataOnly: false,
+});
+
+module.exports.handler = epsagon.lambdaWrapper((event, context, callback) => {
   console.log(JSON.stringify(event));  
 
   const response = {
@@ -11,4 +19,4 @@ module.exports.handler = (event, context, callback) => {
   };
 
   callback(null, response);
-};
+});

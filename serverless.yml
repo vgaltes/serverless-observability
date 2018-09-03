@@ -6,6 +6,7 @@ plugins:
 
 custom:
   bucketName: serverless-observability-${self:provider.stage}-#{AWS::Region}-#{AWS::AccountId}
+  secrets: ${file(./secrets.yml)}
 
 provider:
   name: aws
@@ -18,6 +19,7 @@ provider:
     service: ${self:service}
     accountId: 
       Ref: AWS::AccountId
+    epsagon_token: ${self:custom.secrets.epsagonToken}
 
   iamRoleStatements:
     - Effect: "Allow"
@@ -121,14 +123,8 @@ functions:
           topicName: ${self:service}-${self:provider.stage}
           displayName: ${self:service}-${self:provider.stage}
 
-# you can add CloudFormation resource templates here
 resources:
   Resources:
-    # S3Bucket:
-    #   Type: AWS::S3::Bucket
-    #   Properties:
-    #     BucketName: ${self:custom.bucketName}
-
     DynamoDB:
       Type: AWS::DynamoDB::Table
       Properties:

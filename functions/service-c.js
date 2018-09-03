@@ -4,8 +4,16 @@ const Promise = require('bluebird');
 const AWS     = require('aws-sdk');
 const sns     = Promise.promisifyAll(new AWS.SNS());
 const region  = AWS.config.region;
+const epsagon = require('@epsagon/epsagon');
 
-module.exports.handler = async function(event, context, callback) {
+epsagon.init({
+    token: process.env.epsagon_token,
+    appName: 'serverless-observability',
+    metadataOnly: false,
+});
+
+
+module.exports.handler = epsagon.lambdaWrapper(async function(event, context, callback) {
   console.log(JSON.stringify(event));
   console.log("service-c is a go");
 
@@ -16,8 +24,8 @@ module.exports.handler = async function(event, context, callback) {
     Message: message,
     TopicArn: topicArn
   };
-  
+
   await sns.publishAsync(req);
 
   callback(null, "foo");
-};
+});
