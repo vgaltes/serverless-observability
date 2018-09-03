@@ -1,0 +1,146 @@
+service: serverless-observability
+
+plugins:
+  - serverless-pseudo-parameters
+  - serverless-plugin-existing-s3
+
+custom:
+  bucketName: serverless-observability-${self:provider.stage}-#{AWS::Region}-#{AWS::AccountId}
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  stage: dev
+  region: us-east-1
+  versionFunctions: false
+  environment:
+    stage: ${self:provider.stage}
+    service: ${self:service}
+    accountId: 
+      Ref: AWS::AccountId
+
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "dynamodb:PutItem"
+        - "dynamodb:GetItem"
+        - "dynamodb:DescribeStream"
+        - "dynamodb:GetRecords"
+        - "dynamodb:GetShardIterator"
+        - "dynamodb:ListStreams"
+      Resource:
+        - "arn:aws:dynamodb:${self:provider.region}:*:table/serverless-observability-${self:provider.stage}"
+    - Effect: "Allow"
+      Action:
+        - "s3:GetObject*"
+        - "s3:PutObject*"
+        - "s3:ListBucket*"
+        - "s3:PutBucketNotification"
+      Resource:
+        - "arn:aws:s3:::${self:custom.bucketName}"
+        - "arn:aws:s3:::${self:custom.bucketName}/*"
+    - Effect: "Allow"
+      Action:
+        - "sns:Publish"
+        - "sns:Subscribe"
+      Resource:
+        - "arn:aws:sns:${self:provider.region}:*:serverless-observability-${self:provider.stage}"
+    - Effect: "Allow"
+      Action:
+        - "lambda:InvokeFunction"
+      Resource:
+        - "arn:aws:lambda:${self:provider.region}:*:function:serverless-observability-${self:provider.stage}-*"
+
+functions:
+  service-a:
+    handler: functions/service-a.handler
+    timeout: 10
+    events:
+      - http:
+          path: demo/service-a
+          method: get
+          request:
+            parameters:
+              querystrings:
+                n: true
+    environment:
+      BUCKET_NAME: ${self:custom.bucketName}
+
+  service-b:
+    handler: functions/service-b.handler
+    events:
+      - http:
+          path: demo/service-b
+          method: get
+
+  service-c:
+    handler: functions/service-c.handler
+
+  service-read-sns:
+    handler: functions/service-read-sns.handler
+    events:
+      - sns:
+          topicName: "serverless-observability-${self:provider.stage}"
+          displayName: "serverless-observability-${self:provider.stage}"
+
+  service-read-dynamo:
+    handler: functions/service-read-dynamo.handler
+    events:
+      - stream:
+          type: dynamodb
+          arn:
+            Fn::GetAtt:
+              - DynamoDB
+              - StreamArn
+
+  service-read-s3:
+    handler: functions/service-read-s3.handler
+    events:
+      - s3: 
+          bucket: ${self:custom.bucketName}
+
+  timeout:
+    handler: functions/timeout.handler
+    timeout: 1
+    events:
+      - http:
+          path: demo/timeout
+          method: get
+
+  error:
+    handler: functions/error.handler
+    events:
+      - http:
+          path: demo/error
+          method: get
+
+  sns:
+    handler: functions/sns.handler
+    events:
+      - sns:
+          topicName: ${self:service}-${self:provider.stage}
+          displayName: ${self:service}-${self:provider.stage}
+
+# you can add CloudFormation resource templates here
+resources:
+  Resources:
+    # S3Bucket:
+    #   Type: AWS::S3::Bucket
+    #   Properties:
+    #     BucketName: ${self:custom.bucketName}
+
+    DynamoDB:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: serverless-observability-${self:provider.stage}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
