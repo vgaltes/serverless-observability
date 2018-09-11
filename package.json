@@ -9,15 +9,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@epsagon/epsagon": "^0.1.14",
-    "@iopipe/iopipe": "^1.8.0",
-    "@thundra/core": "^1.5.3",
     "aws-sdk": "^2.275.1",
     "aws-xray-sdk": "^1.3.0",
     "bluebird": "^3.5.1",
     "lodash": "^4.17.10",
-    "serverless-plugin-existing-s3": "^2.2.2",
-    "serverless-plugin-iopipe": "^1.5.2"
+    "serverless-plugin-existing-s3": "^2.2.2"
   },
   "devDependencies": {
     "serverless": "^1.28.0",

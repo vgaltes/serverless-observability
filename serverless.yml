@@ -3,6 +3,7 @@ service: serverless-observability
 plugins:
   - serverless-pseudo-parameters
   - serverless-plugin-existing-s3
+  - serverless-plugin-tracing
 
 custom:
   bucketName: serverless-observability-${self:provider.stage}-#{AWS::Region}-#{AWS::AccountId}
@@ -18,8 +19,15 @@ provider:
     service: ${self:service}
     accountId: 
       Ref: AWS::AccountId
+  tracing: true
 
   iamRoleStatements:
+    - Effect: "Allow" # xray permissions (required)
+      Action:
+        - "xray:PutTraceSegments"
+        - "xray:PutTelemetryRecords"
+      Resource:
+        - "*"
     - Effect: "Allow"
       Action:
         - "dynamodb:PutItem"
