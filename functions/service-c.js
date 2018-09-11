@@ -4,8 +4,11 @@ const Promise = require('bluebird');
 const AWS     = require('aws-sdk');
 const sns     = Promise.promisifyAll(new AWS.SNS());
 const region  = AWS.config.region;
+const iopipe = require('@iopipe/iopipe')({
+  token: `${process.env.iopipe_token}`
+});
 
-module.exports.handler = async function(event, context, callback) {
+module.exports.handler = iopipe(async function(event, context, callback) {
   console.log(JSON.stringify(event));
   console.log("service-c is a go");
 
@@ -20,4 +23,4 @@ module.exports.handler = async function(event, context, callback) {
   await sns.publishAsync(req);
 
   callback(null, "foo");
-};
+});

@@ -1,11 +1,13 @@
 service: serverless-observability
 
 plugins:
+  - serverless-plugin-tracing
   - serverless-pseudo-parameters
   - serverless-plugin-existing-s3
 
 custom:
   bucketName: serverless-observability-${self:provider.stage}-#{AWS::Region}-#{AWS::AccountId}
+  secrets: ${file(./secrets.yml)}
 
 provider:
   name: aws
@@ -13,13 +15,22 @@ provider:
   stage: dev
   region: us-east-1
   versionFunctions: false
+  tracing: true
   environment:
     stage: ${self:provider.stage}
     service: ${self:service}
     accountId: 
       Ref: AWS::AccountId
+    iopipe_token: ${self:custom.secrets.iopipeToken}
+
 
   iamRoleStatements:
+    - Effect: "Allow" # xray permissions (required)
+      Action:
+        - "xray:PutTraceSegments"
+        - "xray:PutTelemetryRecords"
+      Resource:
+        - "*"
     - Effect: "Allow"
       Action:
         - "dynamodb:PutItem"
