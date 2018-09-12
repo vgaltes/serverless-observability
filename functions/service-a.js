@@ -10,6 +10,7 @@ const dynamodb = Promise.promisifyAll(new AWS.DynamoDB.DocumentClient());
 const lambda   = new AWS.Lambda();
 const region   = AWS.config.region;
 const BUCKET_NAME = process.env.BUCKET_NAME;
+const thundra = require("@thundra/core")({ apiKey: `${process.env.thundra_api_key}` });
 
 let publishSNS = () => {
   let topicArn = `arn:aws:sns:${region}:${global.accountId}:serverless-observability-${process.env.stage}`;
@@ -95,7 +96,7 @@ let callServiceB = (n) => {
     });
 };
 
-module.exports.handler = async function (event, context, callback) {
+module.exports.handler = thundra(async function (event, context, callback) {
   console.log(JSON.stringify(event));
   console.log(JSON.stringify(context));
 
@@ -130,4 +131,4 @@ module.exports.handler = async function (event, context, callback) {
 
     throw new Error("boom");
   }
-};
+});

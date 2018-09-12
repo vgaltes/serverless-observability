@@ -4,8 +4,9 @@ const Promise = require('bluebird');
 const AWS     = require('aws-sdk');
 const sns     = Promise.promisifyAll(new AWS.SNS());
 const region  = AWS.config.region;
+const thundra = require("@thundra/core")({ apiKey: `${process.env.thundra_api_key}` });
 
-module.exports.handler = async function(event, context, callback) {
+module.exports.handler = thundra(async function(event, context, callback) {
   console.log(JSON.stringify(event));
   console.log("service-c is a go");
 
@@ -20,4 +21,4 @@ module.exports.handler = async function(event, context, callback) {
   await sns.publishAsync(req);
 
   callback(null, "foo");
-};
+});
