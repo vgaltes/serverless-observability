@@ -1,4 +1,4 @@
-service: serverless-observability
+service: serverless-observability-iopipe
 
 plugins:
   - serverless-plugin-tracing
@@ -6,7 +6,7 @@ plugins:
   - serverless-plugin-existing-s3
 
 custom:
-  bucketName: serverless-observability-${self:provider.stage}-#{AWS::Region}-#{AWS::AccountId}
+  bucketName: ${self:service}-${self:provider.stage}-#{AWS::Region}-#{AWS::AccountId}
   secrets: ${file(./secrets.yml)}
 
 provider:
@@ -40,7 +40,7 @@ provider:
         - "dynamodb:GetShardIterator"
         - "dynamodb:ListStreams"
       Resource:
-        - "arn:aws:dynamodb:${self:provider.region}:*:table/serverless-observability-${self:provider.stage}"
+        - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:service}-${self:provider.stage}"
     - Effect: "Allow"
       Action:
         - "s3:GetObject*"
@@ -55,12 +55,12 @@ provider:
         - "sns:Publish"
         - "sns:Subscribe"
       Resource:
-        - "arn:aws:sns:${self:provider.region}:*:serverless-observability-${self:provider.stage}"
+        - "arn:aws:sns:${self:provider.region}:*:${self:service}-${self:provider.stage}"
     - Effect: "Allow"
       Action:
         - "lambda:InvokeFunction"
       Resource:
-        - "arn:aws:lambda:${self:provider.region}:*:function:serverless-observability-${self:provider.stage}-*"
+        - "arn:aws:lambda:${self:provider.region}:*:function:${self:service}-${self:provider.stage}-*"
 
 functions:
   service-a:
@@ -91,8 +91,8 @@ functions:
     handler: functions/service-read-sns.handler
     events:
       - sns:
-          topicName: "serverless-observability-${self:provider.stage}"
-          displayName: "serverless-observability-${self:provider.stage}"
+          topicName: "${self:service}-${self:provider.stage}"
+          displayName: "${self:service}-${self:provider.stage}"
 
   service-read-dynamo:
     handler: functions/service-read-dynamo.handler
@@ -132,18 +132,12 @@ functions:
           topicName: ${self:service}-${self:provider.stage}
           displayName: ${self:service}-${self:provider.stage}
 
-# you can add CloudFormation resource templates here
 resources:
   Resources:
-    # S3Bucket:
-    #   Type: AWS::S3::Bucket
-    #   Properties:
-    #     BucketName: ${self:custom.bucketName}
-
     DynamoDB:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: serverless-observability-${self:provider.stage}
+        TableName: ${self:service}-${self:provider.stage}
         AttributeDefinitions:
           - AttributeName: id
             AttributeType: S

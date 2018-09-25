@@ -23,7 +23,7 @@ let publishSNS = function (segment) {
     console.log("publishing to sns");
 
     let doPublish = async function (subsegment) {
-      let topicArn = `arn:aws:sns:${region}:${global.accountId}:serverless-observability-${process.env.stage}`;
+      let topicArn = `arn:aws:sns:${region}:${global.accountId}:${process.env.service}-${process.env.stage}`;
       let message = 'test';
 
       let req = {
@@ -78,7 +78,7 @@ let accessDynamoDB = (segment) => {
     console.log("accessing dynamo db");
 
     let doAccess = async function (subsegment) {
-      let table = `serverless-observability-${process.env.stage}`;
+      let table = `${process.env.service}-${process.env.stage}`;
       let id = global.requestId;
       let value = `test-${id}`;
       let getReq = {
