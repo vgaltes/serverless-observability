@@ -1,26 +1,26 @@
 'use strict';
 
-const _        = require('lodash');
-const Promise  = require('bluebird');
-const utils    = require('./utils');
-const AWS      = require('aws-sdk');
-const sns      = Promise.promisifyAll(new AWS.SNS());
-const s3       = Promise.promisifyAll(new AWS.S3());
+const _ = require('lodash');
+const Promise = require('bluebird');
+const utils = require('./utils');
+const AWS = require('aws-sdk');
+const sns = Promise.promisifyAll(new AWS.SNS());
+const s3 = Promise.promisifyAll(new AWS.S3());
 const dynamodb = Promise.promisifyAll(new AWS.DynamoDB.DocumentClient());
-const lambda   = new AWS.Lambda();
-const region   = AWS.config.region;
+const lambda = new AWS.Lambda();
+const region = AWS.config.region;
 const epsagon = require('@epsagon/epsagon');
 
 const BUCKET_NAME = process.env.BUCKET_NAME;
 
 epsagon.init({
-    token: process.env.epsagon_token,
-    appName: 'serverless-observability',
-    metadataOnly: false,
+  token: process.env.epsagon_token,
+  appName: `${process.env.service}`,
+  metadataOnly: false,
 });
 
 let publishSNS = () => {
-  let topicArn = `arn:aws:sns:${region}:${global.accountId}:serverless-observability-${process.env.stage}`;
+  let topicArn = `arn:aws:sns:${region}:${global.accountId}:${process.env.service}-${process.env.stage}`;
   let message = 'test';
 
   let req = {
@@ -51,7 +51,7 @@ let invokeLambda = segment => {
 let accessDynamoDB = () => {
   console.log("accessing dynamo db");
 
-  let table = `serverless-observability-${process.env.stage}`;
+  let table = `${process.env.service}-${process.env.stage}`;
   let id = global.requestId;
   let value = `test-${id}`;
   let getReq = {
@@ -89,7 +89,7 @@ let accessS3 = async () => {
     Bucket: bucket,
     Key: key
   };
-  
+
   return s3.putObjectAsync(putReq);
 };
 
@@ -131,11 +131,37 @@ module.exports.handler = epsagon.lambdaWrapper(async function (event, context, c
     console.log("service-a is going to call the timeout endpoint");
     await utils.request('GET', hostname, '/dev/demo/timeout');
 
-    throw new Error("timed out");
+    const response = {
+      statusCode: 200,
+      body: JSON.stringify({
+        message: `Timed out`
+      })
+    };
+
+    callback(null, response);
+  } else if (n <= 3) {
+    console.log("service-a is going to call the error endpoint");
+    await utils.request('GET', hostname, '/dev/demo/error');
+
+    const response = {
+      statusCode: 500,
+      body: JSON.stringify({
+        message: `Custom internal server error`
+      })
+    };
+
+    callback(null, response);
   } else {
     console.log("service-a is going to call the error endpoint");
     await utils.request('GET', hostname, '/dev/demo/error');
 
-    throw new Error("boom");
+    const response = {
+      statusCode: 200,
+      body: JSON.stringify({
+        message: `This shouldn't appear`
+      }),
+    };
+
+    callback(null, response);
   }
 });
