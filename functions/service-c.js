@@ -17,7 +17,7 @@ module.exports.handler = epsagon.lambdaWrapper(async function (event, context, c
   console.log(JSON.stringify(event));
   console.log("service-c is a go");
 
-  let topicArn = `arn:aws:sns:${region}:${process.env.accountId}:${process.env.service}${process.env.stage}`;
+  let topicArn = `arn:aws:sns:${region}:${process.env.accountId}:${process.env.service}-${process.env.stage}`;
   let message = 'test';
 
   let req = {
