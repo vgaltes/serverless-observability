@@ -1,4 +1,4 @@
-service: serverless-observability-epsagon
+service: serverless-observability-epsagon2
 
 plugins:
   - serverless-pseudo-parameters
