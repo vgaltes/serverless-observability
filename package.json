@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "loadTest": "./node_modules/.bin/artillery run loadTest.yml"
   },
   "author": "",
   "license": "ISC",
@@ -22,6 +23,7 @@
   "devDependencies": {
     "serverless": "^1.28.0",
     "serverless-plugin-tracing": "^1.1.0",
-    "serverless-pseudo-parameters": "^1.6.0"
+    "serverless-pseudo-parameters": "^1.6.0",
+    "artillery": "^1.6.0-24"
   }
 }

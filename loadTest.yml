@@ -1,0 +1,28 @@
+config:
+  target: 'https://bbl5s9ajg3.execute-api.us-east-1.amazonaws.com/dev/demo'
+  phases:
+    - duration: 60
+      arrivalRate: 5
+scenarios:
+    - name: allOk
+      flow:
+      - get:
+          url: "/service-a?n=1"
+    - name: timeout
+      flow:
+      - get:
+          url: "/service-a?n=2"
+    - name: error
+      flow:
+      - get:
+          url: "/service-a?n=3"
+    - name: exception
+      flow:
+      - get:
+          url: "/service-a?n=4"
+
+
+# xRay: https://da95bmrk83.execute-api.us-east-1.amazonaws.com/dev/demo
+# Thundra: https://m74unrkeb6.execute-api.us-east-1.amazonaws.com/dev/demo
+# IOPipe: https://95tbl5dzda.execute-api.us-east-1.amazonaws.com/dev/demo
+# Epsagon: https://bbl5s9ajg3.execute-api.us-east-1.amazonaws.com/dev/demo
